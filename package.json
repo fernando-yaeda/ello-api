@@ -16,5 +16,14 @@
   "bugs": {
     "url": "https://github.com/fernando-yaeda/ello-api/issues"
   },
-  "homepage": "https://github.com/fernando-yaeda/ello-api#readme"
+  "homepage": "https://github.com/fernando-yaeda/ello-api#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "eslint": "^8.31.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "typescript": "^4.9.4"
+  }
 }
