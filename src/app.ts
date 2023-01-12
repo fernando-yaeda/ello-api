@@ -8,10 +8,15 @@ loadEnv();
 
 const app = express();
 
+import { handleApplicationErrors } from "./middlewares";
+import { usersRouter } from "@/routers";
+
 app
   .use(cors())
   .use(express.json())
-  .get("/health", (_req, res) => res.send("OK!"));
+  .get("/health", (_req, res) => res.send("OK!"))
+  .use("/users", usersRouter)
+  .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {
   connectDb();
