@@ -1,4 +1,4 @@
-import authenticationServices from "@/services/authentication-services.ts";
+import authenticationServices from "@/services/authentication-services";
 import { Request, Response } from "express";
 import httpStatus from "http-status";
 
