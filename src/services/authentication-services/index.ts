@@ -1,7 +1,7 @@
 import sessionsRepository from "@/repositories/sessions-repository";
 import usersRepository from "@/repositories/users-repository";
 import { exclude } from "@/utils/prisma-utils";
-import { User } from "@prisma/client";
+import { Session, User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { invalidCredentialsError } from "./errors";
@@ -54,6 +54,12 @@ async function createSession(userId: string): Promise<string> {
   return token;
 }
 
+async function findSession(token: string): Promise<Session> {
+  const session = await sessionsRepository.findByToken(token);
+
+  return session;
+}
+
 export type SignInParams = Pick<User, "email" | "password">;
 
 type SignInResult = {
@@ -63,6 +69,7 @@ type SignInResult = {
 
 const authenticationServices = {
   signIn,
+  findSession,
 };
 
 export * from "./errors";
