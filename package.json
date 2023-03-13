@@ -2,11 +2,21 @@
   "name": "ello",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
+    "prebuild": "rm -rf dist",
+    "build": "ttsc  -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "dev:load-envs": "dotenv -e .env.development",
+    "dev:migration:run": "npm run dev:compose -- run ello-development npm run dev:load-envs prisma migrate deploy",
+    "dev:migration:generate": "npm run dev:compose -- run ello-development npm run dev:load-envs prisma migrate dev",
+    "dev:prisma:studio": "npm run dev:compose -- ello-development npm run dev:load-envs prisma studio",
+    "dev:seed": "npm run dev:compose -- run ello-development npm run dev:load-envs prisma db seed",
+    "dev:compose": "docker compose -f docker-compose.development.yml --env-file .env.development",
+    "dev:docker": "npm run dev:compose -- up",
+    "dev:docker:down": "npm run dev:compose -- down",
     "dev": "NODE_ENV=development nodemon --watch 'src/' --exec 'ts-node -r tsconfig-paths/register ./src/server.ts' -e ts",
-    "test": "NODE_ENV=test jest --passWithNoTests --runInBand",
-    "test:load-envs": "dotenv -e .env.test"
+    "test": "NODE_ENV=test jest --passWithNoTests --runInBand"
   },
   "repository": {
     "type": "git",
@@ -27,6 +37,7 @@
     "@types/jsonwebtoken": "^9.0.1",
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
+    "dotenv-cli": "^7.1.0",
     "eslint": "^8.31.0",
     "eslint-import-resolver-typescript": "^3.5.3",
     "eslint-plugin-import": "^2.26.0",
@@ -37,6 +48,7 @@
     "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1",
     "tsconfig-paths": "^4.1.2",
+    "ttypescript": "^1.5.15",
     "typescript": "^4.9.4",
     "typescript-transform-paths": "^3.4.6"
   },
@@ -50,6 +62,7 @@
     "express-async-errors": "^3.1.1",
     "http-status": "^1.6.2",
     "joi": "^17.7.0",
-    "jsonwebtoken": "^9.0.0"
+    "jsonwebtoken": "^9.0.0",
+    "prisma": "^4.11.0"
   }
 }
