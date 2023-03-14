@@ -2,19 +2,21 @@ import "express-async-errors";
 import express, { Express } from "express";
 import cors from "cors";
 
-import { loadEnv, connectDb, disconnectDb } from "./config";
+import { loadEnv, connectDb, disconnectDb } from "@/config";
 
 loadEnv();
 
 const app = express();
 
-import { handleApplicationErrors } from "./middlewares";
+import { handleApplicationErrors } from "@/middlewares";
 import { usersRouter, authenticationRouter } from "@/routers";
 
 app
   .use(cors())
   .use(express.json())
-  .get("/health", (_req, res) => res.send("OK!"))
+  .get("/health", (_req, res) => {
+    res.send("ok!");
+  })
   .use("/users", usersRouter)
   .use("/auth", authenticationRouter)
   .use(handleApplicationErrors);
