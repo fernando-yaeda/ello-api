@@ -17,7 +17,7 @@ async function signIn({
   const token = await createSession(user.id);
 
   return {
-    user: exclude(user, "password", "fullName"),
+    user: exclude(user, "password", "createdAt", "updatedAt"),
     token,
   };
 }
@@ -63,7 +63,7 @@ async function findSession(token: string): Promise<Session> {
 export type SignInParams = Pick<User, "email" | "password">;
 
 type SignInResult = {
-  user: Pick<User, "id" | "email">;
+  user: Pick<User, "id" | "fullName" | "email">;
   token: string;
 };
 
