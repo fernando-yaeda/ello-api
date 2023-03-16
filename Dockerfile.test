@@ -1,0 +1,6 @@
+FROM node:16
+WORKDIR /usr/src/ello
+COPY package*.json ./
+COPY ./prisma ./prisma
+RUN npm install
+COPY . .
