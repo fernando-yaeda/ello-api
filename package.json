@@ -7,6 +7,17 @@
     "prebuild": "rm -rf dist",
     "build": "ttsc  -p tsconfig.build.json",
     "start": "node dist/server.js",
+    "check": "dotenv -p NODE_ENV",
+    "test": "jest --passWithNoTests --runInBand",
+    "test:load-envs": "dotenv -e .env.test",
+    "test:migration:run": "npm run test:load-envs prisma migrate deploy && npm run test:load-envs npx prisma db seed",
+    "test:migration:generate": "npm run test:load-envs prisma migrate dev && npm run test:load-envs prisma generate",
+    "test:watch": "jest --watch --passWithNoTests --runInBand",
+    "test:docker": "npm run test:compose -- up",
+    "test:docker:down": "npm run test:compose -- down",
+    "test:compose": "docker compose -f docker-compose.test.yml --env-file .env.test",
+    "test:postgres": "npm run test:compose -- up -d ello-postgres-test",
+    "test:postgres:down": "npm run test:compose -- down -v", 
     "dev:load-envs": "dotenv -e .env.development",
     "dev:migration:run": "npm run dev:compose -- run ello-development npm run dev:load-envs prisma migrate deploy",
     "dev:migration:generate": "npm run dev:compose -- run ello-development npm run dev:load-envs prisma migrate dev",
@@ -16,7 +27,8 @@
     "dev:docker": "npm run dev:compose -- up",
     "dev:docker:down": "npm run dev:compose -- down",
     "dev": "NODE_ENV=development nodemon --watch 'src/' --exec 'ts-node -r tsconfig-paths/register ./src/server.ts' -e ts",
-    "test": "NODE_ENV=test jest --passWithNoTests --runInBand"
+    "ci:build": "docker compose -f docker-compose.test.yml build",
+    "ci:test": "docker compose -f docker-compose.test.yml run ello-test bash -c 'npm run test:migration:run && npm test'"
   },
   "repository": {
     "type": "git",
@@ -29,6 +41,9 @@
     "url": "https://github.com/fernando-yaeda/ello-api/issues"
   },
   "homepage": "https://github.com/fernando-yaeda/ello-api#readme",
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/cors": "^2.8.13",
