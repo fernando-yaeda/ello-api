@@ -5,15 +5,6 @@ on:
     branches:
       - main
 
-env:
-  JWT_SECRET: '${{secrets.JWT_SECRET}}'
-  POSTGRES_USERNAME: '${{secrets.POSTGRES_USERNAME}}'
-  POSTGRES_PASSWORD: '${{secrets.POSTGRES_PASSWORD}}'
-  POSTGRES_HOST: '${{secrets.POSTGRES_HOST}}'
-  POSTGRES_DATABASE: '${{secrets.POSTGRES_DATABASE}}'
-  POSTGRES_PORT: '${{secrets.POSTGRES_PORT}}'
-  DATABASE_URL: '${{secrets.DATABASE_URL}}'
-
 jobs:
   build:
     name: Deploy to EC2
@@ -26,17 +17,15 @@ jobs:
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{secrets.EC2_SSH_KEY}}
-          # ARGS: ${{secrets.ARGS}}
-          SOURCE: ${{secrets.SOURCE}}
+          ARGS: "-rlgoDzvc -i --delete"
+          SOURCE: "dist/"
           REMOTE_HOST: ${{secrets.REMOTE_HOST}}
           REMOTE_USER: ${{secrets.REMOTE_USER}}
           TARGET: ${{secrets.TARGET}}
-          EXCLUDE: ${{secrets.EXCLUDE}}
+          EXCLUDE: "/dist/, /node_modules/"
 
       - name: Build
         run: docker compose build
 
       - name: Run
         run: docker compose down && docker-compose up -d
-
-        
