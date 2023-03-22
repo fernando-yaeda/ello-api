@@ -14,7 +14,7 @@ describe("user-service test suite", () => {
       password: faker.internet.password(),
     };
 
-    it("should throw conflict error if email is already in use", async () => {
+    it("should throw dupicated email error if email is already in use", async () => {
       jest
         .spyOn(usersRepository, "findByEmail")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
