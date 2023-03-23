@@ -8,6 +8,8 @@
     "build": "ttsc  -p tsconfig.build.json",
     "start": "node dist/server.js",
     "check": "dotenv -p NODE_ENV",
+    "migration:run": "prisma migrate dev",
+    "migration:generate": "npm run dev:load-envs prisma migrate dev && npm run dev:load-envs prisma generate",
     "test": "jest --passWithNoTests --runInBand",
     "test:load-envs": "dotenv -e .env.test",
     "test:migration:run": "npm run test:load-envs prisma migrate deploy && npm run test:load-envs npx prisma db seed",
