@@ -63,7 +63,7 @@ async function findSession(token: string): Promise<Session> {
 export type SignInParams = Pick<User, "email" | "password">;
 
 type SignInResult = {
-  user: Pick<User, "id" | "fullName" | "email">;
+  user: Pick<User, "id" | "username" | "email">;
   token: string;
 };
 
