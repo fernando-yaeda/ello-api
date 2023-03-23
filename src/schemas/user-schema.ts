@@ -3,6 +3,6 @@ import Joi from "joi";
 
 export const createUserSchema = Joi.object<CreateUserParams>({
   email: Joi.string().email().required(),
-  fullName: Joi.string().required(),
+  username: Joi.string().required(),
   password: Joi.string().min(6).max(18).required(),
 });

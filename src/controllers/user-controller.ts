@@ -6,10 +6,10 @@ export async function usersPost(
   req: Request,
   res: Response
 ): Promise<Response> {
-  const { email, fullName, password } = req.body;
+  const { email, username, password } = req.body;
 
   try {
-    const user = await userService.createUser({ email, fullName, password });
+    const user = await userService.createUser({ email, username, password });
 
     return res.status(httpStatus.CREATED).json({
       id: user.id,

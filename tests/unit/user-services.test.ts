@@ -10,11 +10,11 @@ describe("user-service test suite", () => {
   describe("createUser test suite", () => {
     const userMock: CreateUserParams = {
       email: faker.internet.email(),
-      fullName: faker.internet.userName(),
+      username: faker.internet.userName(),
       password: faker.internet.password(),
     };
 
-    it("should throw conflict error if email is already in use", async () => {
+    it("should throw dupicated email error if email is already in use", async () => {
       jest
         .spyOn(usersRepository, "findByEmail")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,7 +22,7 @@ describe("user-service test suite", () => {
           return {
             id: faker.datatype.uuid(),
             email: userMock.email,
-            fullName: faker.internet.userName(),
+            username: faker.internet.userName(),
             password: faker.internet.password(),
           };
         });
