@@ -5,7 +5,7 @@ import { duplicatedEmailError } from "./errors";
 
 async function createUser({
   email,
-  fullName,
+  username,
   password,
 }: CreateUserParams): Promise<User> {
   await validateUniqueEmailOrFail(email);
@@ -14,7 +14,7 @@ async function createUser({
 
   return usersRepository.create({
     email,
-    fullName,
+    username,
     password: hashedPassword,
   });
 }
@@ -27,7 +27,7 @@ async function validateUniqueEmailOrFail(email: string): Promise<void> {
   }
 }
 
-export type CreateUserParams = Pick<User, "email" | "fullName" | "password">;
+export type CreateUserParams = Pick<User, "email" | "username" | "password">;
 
 const userService = {
   createUser,

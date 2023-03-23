@@ -31,7 +31,7 @@ describe("authentication-services test suite", () => {
     it("should throw invalid credentials error given wrong password", async () => {
       const existingUser = {
         id: faker.datatype.uuid(),
-        fullName: faker.internet.userName(),
+        username: faker.internet.userName(),
         email: signInMock.email,
       };
 
@@ -52,7 +52,7 @@ describe("authentication-services test suite", () => {
     it("should be able to sign in given valid credentials", async () => {
       const existingUser = {
         id: faker.datatype.uuid(),
-        fullName: faker.internet.userName(),
+        username: faker.internet.userName(),
         email: signInMock.email,
       };
 
@@ -83,7 +83,7 @@ describe("authentication-services test suite", () => {
       expect(promise).resolves.toStrictEqual({
         user: {
           id: existingUser.id,
-          fullName: existingUser.fullName,
+          username: existingUser.username,
           email: existingUser.email,
         },
         token: jwtString,

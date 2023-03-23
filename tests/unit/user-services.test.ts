@@ -10,7 +10,7 @@ describe("user-service test suite", () => {
   describe("createUser test suite", () => {
     const userMock: CreateUserParams = {
       email: faker.internet.email(),
-      fullName: faker.internet.userName(),
+      username: faker.internet.userName(),
       password: faker.internet.password(),
     };
 
@@ -22,7 +22,7 @@ describe("user-service test suite", () => {
           return {
             id: faker.datatype.uuid(),
             email: userMock.email,
-            fullName: faker.internet.userName(),
+            username: faker.internet.userName(),
             password: faker.internet.password(),
           };
         });
