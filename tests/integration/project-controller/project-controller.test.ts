@@ -48,14 +48,13 @@ describe("POST /projects", () => {
   });
 
   describe("when body is valid", () => {
-    const generateValidBody = (userId: string) => ({
+    const generateValidBody = () => ({
       name: faker.random.words(),
-      ownerId: userId,
     });
 
     it("should return status 201 given valid body", async () => {
       const user = await createUser();
-      const body = generateValidBody(user.id);
+      const body = generateValidBody();
       const token = await generateValidToken(user);
 
       const response = await server
@@ -68,7 +67,7 @@ describe("POST /projects", () => {
 
     it("should save project on database", async () => {
       const user = await createUser();
-      const body = generateValidBody(user.id);
+      const body = generateValidBody();
       const token = await generateValidToken(user);
 
       const response = await server
@@ -90,7 +89,7 @@ describe("POST /projects", () => {
 
     it("should return the correct response body", async () => {
       const user = await createUser();
-      const body = generateValidBody(user.id);
+      const body = generateValidBody();
       const token = await generateValidToken(user);
 
       const response = await server
