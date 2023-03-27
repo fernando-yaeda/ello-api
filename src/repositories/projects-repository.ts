@@ -7,6 +7,14 @@ async function create(data: CreateProjectParams): Promise<Project> {
   });
 }
 
+async function findById(projectId: string): Promise<Project | null> {
+  return await prisma.project.findUnique({
+    where: {
+      id: projectId,
+    },
+  });
+}
+
 export type CreateProjectParams = Omit<
   Project,
   "id" | "createdAt" | "updatedAt"
@@ -14,6 +22,7 @@ export type CreateProjectParams = Omit<
 
 const projectsRepository = {
   create,
+  findById,
 };
 
 export default projectsRepository;

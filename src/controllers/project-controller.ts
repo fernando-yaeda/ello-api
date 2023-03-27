@@ -20,7 +20,7 @@ export async function projectsPost(
     });
   } catch (error) {
     if (error.name === "InvalidDataError") {
-      return res.status(httpStatus.BAD_REQUEST);
+      return res.status(httpStatus.BAD_REQUEST).send(error);
     }
   }
 }
