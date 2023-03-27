@@ -15,8 +15,17 @@ async function findByEmail(email: string): Promise<User | null> {
   });
 }
 
+async function findById(id: string): Promise<User | null> {
+  return await prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+}
+
 const usersRepository = {
   create,
+  findById,
   findByEmail,
 };
 

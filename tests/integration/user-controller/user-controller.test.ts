@@ -19,7 +19,10 @@ describe("POST /users", () => {
     it("should return status 400 when body is not given", async () => {
       const response = await server.post("/users");
 
+      const findUser = await prisma.user.findMany({});
+
       expect(response.status).toBe(httpStatus.BAD_REQUEST);
+      expect(findUser.length).toStrictEqual(0);
     });
 
     it.each(invalidBodyDataSet)(
@@ -27,7 +30,10 @@ describe("POST /users", () => {
       async (invalidBody) => {
         const response = await server.post("/users").send(invalidBody);
 
+        const findUser = await prisma.user.findMany({});
+
         expect(response.status).toStrictEqual(httpStatus.BAD_REQUEST);
+        expect(findUser.length).toStrictEqual(0);
       }
     );
   });
@@ -53,6 +59,11 @@ describe("POST /users", () => {
       await createUser(body);
 
       const response = await server.post("/users").send(body);
+
+      const findUser = await prisma.user.findMany({
+        where: { email: body.email },
+      });
+      expect(findUser.length).toStrictEqual(1);
 
       expect(response.status).toStrictEqual(httpStatus.CONFLICT);
     });
