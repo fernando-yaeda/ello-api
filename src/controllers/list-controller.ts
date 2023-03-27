@@ -11,7 +11,7 @@ export async function listsPost(
   const { name, projectId } = req.body;
 
   try {
-    const list = await listsServices.createList({ name, projectId });
+    const list = await listsServices.createList({ name, projectId }, userId);
 
     return res.status(httpStatus.CREATED).json({
       listId: list.id,
@@ -19,7 +19,15 @@ export async function listsPost(
     });
   } catch (error) {
     if (error.name === "InvalidDataError") {
-      return res.status(httpStatus.BAD_REQUEST);
+      return res.status(httpStatus.BAD_REQUEST).send(error);
+    }
+
+    if (error.name === "NotAllowedError") {
+      return res.status(httpStatus.FORBIDDEN).send(error);
+    }
+
+    if (error.name === "ProjectNotFoundError") {
+      return res.status(httpStatus.NOT_FOUND).send(error);
     }
   }
 }

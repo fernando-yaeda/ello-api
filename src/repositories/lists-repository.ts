@@ -7,7 +7,10 @@ async function create(data: CreateListParams): Promise<List> {
   });
 }
 
-export type CreateListParams = Omit<List, "id" | "createdAt" | "updatedAt">;
+export type CreateListParams = {
+  name: string;
+  projectId: string;
+};
 
 const listsRepository = {
   create,

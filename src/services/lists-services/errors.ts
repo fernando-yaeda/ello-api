@@ -1,10 +1,10 @@
 import { ApplicationError } from "@/protocols";
 
-export const DuplicatedEmailErrorObject = {
-  name: "DuplicatedEmailError",
-  message: "There is already an user with given email",
+export const NotAllowedErrorObject = {
+  name: "NotAllowedError",
+  message: "Not allowed to perform this action",
 };
 
-export function duplicatedEmailError(): ApplicationError {
-  return DuplicatedEmailErrorObject;
+export function notAllowedError(): ApplicationError {
+  return NotAllowedErrorObject;
 }
