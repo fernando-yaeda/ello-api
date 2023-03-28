@@ -8,3 +8,12 @@ export const NotAllowedErrorObject = {
 export function notAllowedError(): ApplicationError {
   return NotAllowedErrorObject;
 }
+
+export const ListNotFoundErrorObject = {
+  name: "ListNotFoundError",
+  message: "There is no list with given id",
+};
+
+export function listNotFoundError(): ApplicationError {
+  return ListNotFoundErrorObject;
+}
