@@ -3,7 +3,7 @@ import listsRepository, {
 } from "@/repositories/lists-repository";
 import { List } from "@prisma/client";
 import projectService from "../projects-services";
-import { notAllowedError } from "./errors";
+import { listNotFoundError, notAllowedError } from "./errors";
 
 async function createList(
   { name, projectId }: CreateListParams,
@@ -19,8 +19,17 @@ async function createList(
   });
 }
 
+async function validateListOrFail(listId: string): Promise<List | null> {
+  const list = await listsRepository.findById(listId);
+
+  if (!list) throw listNotFoundError();
+
+  return list;
+}
+
 const listsServices = {
   createList,
+  validateListOrFail,
 };
 
 export * from "./errors";

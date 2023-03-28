@@ -7,6 +7,14 @@ async function create(data: CreateListParams): Promise<List> {
   });
 }
 
+async function findById(listId: string): Promise<List | null> {
+  return await prisma.list.findUnique({
+    where: {
+      id: listId,
+    },
+  });
+}
+
 export type CreateListParams = {
   name: string;
   projectId: string;
@@ -14,6 +22,7 @@ export type CreateListParams = {
 
 const listsRepository = {
   create,
+  findById,
 };
 
 export default listsRepository;
