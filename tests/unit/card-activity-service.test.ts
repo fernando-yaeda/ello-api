@@ -14,7 +14,7 @@ describe("cards-service test suite", () => {
 
     const dateMock = faker.datatype.datetime();
 
-    const idMock = faker.datatype.datetime();
+    const idMock = faker.datatype.uuid();
 
     it("should create card activity", async () => {
       jest
