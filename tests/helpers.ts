@@ -4,6 +4,11 @@ import { createUser, createSession } from "./factories";
 import { prisma } from "@/config";
 
 export async function cleanDb() {
+  await prisma.cardLabel.deleteMany({});
+  await prisma.color.deleteMany({});
+  await prisma.label.deleteMany({});
+  await prisma.cardActivity.deleteMany({});
+  await prisma.card.deleteMany({});
   await prisma.list.deleteMany({});
   await prisma.project.deleteMany({});
   await prisma.session.deleteMany({});

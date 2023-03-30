@@ -19,8 +19,15 @@ async function createList(
   });
 }
 
+async function getListById(listId: string): Promise<List | null> {
+  const list = await listsRepository.findById(listId);
+
+  return list;
+}
+
 const listsServices = {
   createList,
+  getListById,
 };
 
 export * from "./errors";
