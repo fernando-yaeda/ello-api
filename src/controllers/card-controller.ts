@@ -15,7 +15,7 @@ export async function cardsPost(
 
     return res.status(httpStatus.CREATED).json({
       cardId: card.id,
-      name: card.title,
+      title: card.title,
     });
   } catch (error) {
     if (error.name === "InvalidDataError") {

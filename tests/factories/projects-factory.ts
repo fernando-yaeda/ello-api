@@ -6,7 +6,7 @@ import { faker } from "@faker-js/faker";
 export async function createProject(user?: User): Promise<Project> {
   const incomingUser = user || (await createUser());
 
-  return prisma.project.create({
+  return await prisma.project.create({
     data: {
       name: faker.random.words(),
       ownerId: incomingUser.id,
