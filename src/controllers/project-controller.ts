@@ -1,11 +1,12 @@
 import { AuthenticatedRequest } from "@/middlewares";
 import projectService from "@/services/projects-services";
-import { Response } from "express";
+import { NextFunction, Response } from "express";
 import httpStatus from "http-status";
 
 export async function projectsPost(
   req: AuthenticatedRequest,
-  res: Response
+  res: Response,
+  next: NextFunction
 ): Promise<Response> {
   const ownerId = res.locals.userId;
   const { name } = req.body;
@@ -19,8 +20,6 @@ export async function projectsPost(
       ownerId: project.ownerId,
     });
   } catch (error) {
-    if (error.name === "InvalidDataError") {
-      return res.status(httpStatus.BAD_REQUEST).send(error);
-    }
+    next(error);
   }
 }
