@@ -10,10 +10,12 @@ async function createProject({
   name,
   ownerId,
 }: CreateProjectParams): Promise<Project & { participants: Participant[] }> {
-  return await projectsRepository.create({
+  const project = await projectsRepository.create({
     name,
     ownerId,
   });
+
+  return project;
 }
 
 async function validateProjectOrFail(
