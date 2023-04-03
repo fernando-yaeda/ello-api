@@ -1,32 +1,41 @@
-import listsService, { notAllowedError } from "@/services/lists-services";
+import { faker } from "@faker-js/faker";
+
+import projectsRepository from "@/repositories/projects-repository";
+import projectService, {
+  projectNotFoundError,
+} from "@/services/projects-services";
+
+import participantsRepository from "@/repositories/participants-repository";
+import participantServices, {
+  notParticipantError,
+} from "@/services/participant-services";
+
 import listsRepository, {
   CreateListParams,
 } from "@/repositories/lists-repository";
-import { faker } from "@faker-js/faker";
-import projectsRepository from "@/repositories/projects-repository";
-import { projectNotFoundError } from "@/services/projects-services";
+import listsService from "@/services/lists-services";
 
 describe("lists-service test suite", () => {
   describe("createList test suite", () => {
-    const listMock: CreateListParams = {
-      name: faker.random.words(),
-      projectId: faker.datatype.uuid(),
-    };
+    const userIdMock = faker.datatype.uuid();
 
     const projectMock = {
       id: faker.datatype.uuid(),
       name: faker.random.words(),
-      ownerId: faker.datatype.uuid(),
+      ownerId: userIdMock,
     };
 
-    const userIdMock = faker.datatype.uuid();
+    const listMock: CreateListParams = {
+      name: faker.random.words(),
+      projectId: projectMock.id,
+    };
 
     it("should throw not found error if project does not exist", async () => {
       jest
         .spyOn(projectsRepository, "findById")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return null;
+          return;
         });
 
       const promise = listsService.createList(listMock, userIdMock);
@@ -34,7 +43,7 @@ describe("lists-service test suite", () => {
       expect(promise).rejects.toStrictEqual(projectNotFoundError());
     });
 
-    it("should throw not allowed error if user is not the project owner", async () => {
+    it("should throw not allowed error if user is not a project participant", async () => {
       jest
         .spyOn(projectsRepository, "findById")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,20 +51,31 @@ describe("lists-service test suite", () => {
           return projectMock;
         });
 
-      const promise = listsService.createList(
-        { ...listMock, projectId: projectMock.id },
-        userIdMock
-      );
+      jest
+        .spyOn(participantsRepository, "findByIndex")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return;
+        });
 
-      expect(promise).rejects.toStrictEqual(notAllowedError());
+      const promise = listsService.createList(listMock, faker.datatype.uuid());
+
+      expect(promise).rejects.toStrictEqual(notParticipantError());
     });
 
     it("should be able to create list", async () => {
       jest
-        .spyOn(projectsRepository, "findById")
+        .spyOn(projectService, "validateProjectOrFail")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return projectMock;
+          return;
+        });
+
+      jest
+        .spyOn(participantServices, "validateParticipant")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return;
         });
 
       jest
@@ -65,12 +85,9 @@ describe("lists-service test suite", () => {
           return listMock;
         });
 
-      const promise = listsService.createList(listMock, projectMock.ownerId);
+      const promise = listsService.createList(listMock, userIdMock);
 
-      expect(promise).resolves.toStrictEqual({
-        name: listMock.name,
-        projectId: listMock.projectId,
-      });
+      expect(promise).resolves.toStrictEqual(listMock);
     });
   });
 });

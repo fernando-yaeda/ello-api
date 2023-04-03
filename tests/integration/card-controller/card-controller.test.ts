@@ -30,22 +30,22 @@ describe("POST /cards", () => {
       expect(findCard.length).toStrictEqual(0);
     });
 
-    // it.each(invalidBodyDataSet)(
-    //   "should return status 400 when body is not valid",
-    //   async (invalidBody) => {
-    //     const token = await generateValidToken();
+    it.each(invalidBodyDataSet)(
+      "should return status 400 when body is not valid",
+      async (invalidBody) => {
+        const token = await generateValidToken();
 
-    //     const response = await server
-    //       .post("/cards")
-    //       .set("Authorization", `Bearer ${token}`)
-    //       .send(invalidBody);
+        const response = await server
+          .post("/cards")
+          .set("Authorization", `Bearer ${token}`)
+          .send(invalidBody);
 
-    //     const findCard = await prisma.card.findMany({});
+        const findCard = await prisma.card.findMany({});
 
-    //     expect(response.status).toStrictEqual(httpStatus.BAD_REQUEST);
-    //     expect(findCard.length).toStrictEqual(0);
-    //   }
-    // );
+        expect(response.status).toStrictEqual(httpStatus.BAD_REQUEST);
+        expect(findCard.length).toStrictEqual(0);
+      }
+    );
   });
 
   describe("when body is valid", () => {
@@ -89,6 +89,30 @@ describe("POST /cards", () => {
           title: response.body.title,
         })
       );
+    });
+
+    it("should correctly save card activity on database", async () => {
+      const user = await createUser();
+      const list = await createList(user);
+      const token = await generateValidToken(user);
+      const body = generateValidBody(list.id);
+
+      const response = await server
+        .post("/cards")
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      const cardActivity = await prisma.cardActivity.findFirst({
+        where: { cardId: response.body.cardId },
+      });
+
+      expect(cardActivity).toStrictEqual({
+        id: expect.any(String),
+        actionPerformed: "created",
+        cardId: response.body.cardId,
+        performedBy: user.id,
+        createdAt: expect.any(Date),
+      });
     });
 
     it("should return the correct response body", async () => {
@@ -141,7 +165,7 @@ describe("POST /cards", () => {
       expect(response.status).toStrictEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should return status 403 if user is not the project owner", async () => {
+    it("should return status 403 if user is not a project participant", async () => {
       const user = await createUser();
       const list = await createList();
       const token = await generateValidToken(user);

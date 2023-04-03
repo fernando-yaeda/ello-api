@@ -8,17 +8,13 @@ export function handleApplicationErrors(
   res: Response,
   _next: NextFunction
 ) {
-  if (err.name === "DuplicatedEmailError") {
-    return res.status(httpStatus.CONFLICT).send({
+  if (err.name === "NotParticipantError") {
+    return res.status(httpStatus.FORBIDDEN).send({
       message: err.message,
     });
   }
 
-  if (err.name === "UnauthorizedError") {
-    return res.status(httpStatus.UNAUTHORIZED).send({
-      message: err.message,
-    });
-  }
+  _next();
 
   /* eslint-disable-next-line no-console */
   console.error(err);

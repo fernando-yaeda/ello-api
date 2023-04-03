@@ -6,7 +6,11 @@ import { CardActivity } from "@prisma/client";
 async function createCardActivity(
   CreateCardActivityParams: CreateCardActivityParams
 ): Promise<CardActivity> {
-  return await cardActivityRepository.create(CreateCardActivityParams);
+  const cardActivity = await cardActivityRepository.create(
+    CreateCardActivityParams
+  );
+
+  return cardActivity;
 }
 
 const cardActivityServices = {

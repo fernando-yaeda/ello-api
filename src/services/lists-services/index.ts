@@ -1,17 +1,18 @@
+import projectService from "../projects-services";
+import participantServices from "../participant-services";
+
 import listsRepository, {
   CreateListParams,
 } from "@/repositories/lists-repository";
+import { listNotFoundError } from "./errors";
 import { List } from "@prisma/client";
-import projectService from "../projects-services";
-import { notAllowedError } from "./errors";
 
 async function createList(
   { name, projectId }: CreateListParams,
   userId: string
-): Promise<List | null> {
-  const project = await projectService.validateProjectOrFail(projectId);
-
-  if (project.ownerId !== userId) throw notAllowedError();
+): Promise<List> {
+  await projectService.validateProjectOrFail(projectId);
+  await participantServices.validateParticipant(userId, projectId);
 
   return await listsRepository.create({
     name,
@@ -19,7 +20,15 @@ async function createList(
   });
 }
 
-async function getListById(listId: string): Promise<List | null> {
+async function validateListOrFail(projectId: string): Promise<List | never> {
+  const list = await listsRepository.findById(projectId);
+
+  if (!list) throw listNotFoundError();
+
+  return list;
+}
+
+async function getListById(listId: string): Promise<List> {
   const list = await listsRepository.findById(listId);
 
   return list;
@@ -28,6 +37,7 @@ async function getListById(listId: string): Promise<List | null> {
 const listsServices = {
   createList,
   getListById,
+  validateListOrFail,
 };
 
 export * from "./errors";
