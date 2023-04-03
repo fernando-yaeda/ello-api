@@ -127,7 +127,7 @@ describe("POST /lists", () => {
       expect(response.status).toStrictEqual(httpStatus.NOT_FOUND);
     });
 
-    it("should return status 403 if user is not the project owner", async () => {
+    it("should return status 403 if user is not a project participant", async () => {
       const user = await createUser();
       const project = await createProject();
       const token = await generateValidToken(user);

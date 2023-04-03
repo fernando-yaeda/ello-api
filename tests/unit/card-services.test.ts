@@ -1,36 +1,49 @@
-import cardsServices, { notAllowedError } from "@/services/cards-services";
+import { faker } from "@faker-js/faker";
+
+import listsRepository from "@/repositories/lists-repository";
+import listsServices, { listNotFoundError } from "@/services/lists-services";
+
+import projectsRepository from "@/repositories/projects-repository";
+import projectService, {
+  projectNotFoundError,
+} from "@/services/projects-services";
+
+import participantsRepository from "@/repositories/participants-repository";
+import participantServices, {
+  notParticipantError,
+} from "@/services/participant-services";
+
+import cardActivityServices from "@/services/card-activities-services";
+
 import cardsRepository, {
   CreateCardParams,
 } from "@/repositories/cards-repository";
-import { faker } from "@faker-js/faker";
-import listsServices, { listNotFoundError } from "@/services/lists-services";
-import projectService from "@/services/projects-services";
-import cardActivityServices from "@/services/card-activities-services";
+import cardsServices from "@/services/cards-services";
 
 describe("cards-service test suite", () => {
   describe("createCard test suite", () => {
-    const cardMock: CreateCardParams = {
-      title: faker.random.words(),
-      listId: faker.datatype.uuid(),
-    };
+    const userIdMock = faker.datatype.uuid();
 
     const projectMock = {
       id: faker.datatype.uuid(),
       name: faker.random.words(),
-      ownerId: faker.datatype.uuid(),
+      ownerId: userIdMock,
     };
 
     const listMock = {
       id: faker.datatype.uuid(),
       name: faker.random.words(),
-      projectId: faker.datatype.uuid(),
+      projectId: projectMock.id,
     };
 
-    const userIdMock = faker.datatype.uuid();
+    const cardMock: CreateCardParams = {
+      title: faker.random.words(),
+      listId: listMock.id,
+    };
 
     it("should throw not found error if list does not exist", async () => {
       jest
-        .spyOn(listsServices, "getListById")
+        .spyOn(listsRepository, "findById")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
           return;
@@ -41,35 +54,56 @@ describe("cards-service test suite", () => {
       expect(promise).rejects.toStrictEqual(listNotFoundError());
     });
 
-    it("should throw not allowed error if user is not the project owner", async () => {
+    it("should throw not found error if project does not exist", async () => {
       jest
-        .spyOn(listsServices, "getListById")
+        .spyOn(listsRepository, "findById")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
           return listMock;
         });
 
       jest
-        .spyOn(projectService, "validateProjectOrFail")
+        .spyOn(projectsRepository, "findById")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return {
-            id: listMock.projectId,
-            ...projectMock,
-          };
+          return;
         });
 
-      const promise = cardsServices.createCard(
-        { title: cardMock.title, listId: listMock.id },
-        userIdMock
-      );
+      const promise = cardsServices.createCard(cardMock, userIdMock);
 
-      expect(promise).rejects.toStrictEqual(notAllowedError());
+      expect(promise).rejects.toStrictEqual(projectNotFoundError());
+    });
+
+    it("should throw not allowed error if user is not a project participant", async () => {
+      jest
+        .spyOn(listsRepository, "findById")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return listMock;
+        });
+
+      jest
+        .spyOn(projectsRepository, "findById")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return projectMock;
+        });
+
+      jest
+        .spyOn(participantsRepository, "findByIndex")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return;
+        });
+
+      const promise = cardsServices.createCard(cardMock, userIdMock);
+
+      expect(promise).rejects.toStrictEqual(notParticipantError());
     });
 
     it("should be able to create card", async () => {
       jest
-        .spyOn(listsServices, "getListById")
+        .spyOn(listsServices, "validateListOrFail")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
           return listMock;
@@ -79,7 +113,14 @@ describe("cards-service test suite", () => {
         .spyOn(projectService, "validateProjectOrFail")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return projectMock;
+          return;
+        });
+
+      jest
+        .spyOn(participantServices, "validateParticipant")
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .mockImplementationOnce((): any => {
+          return;
         });
 
       jest
@@ -96,7 +137,7 @@ describe("cards-service test suite", () => {
           return;
         });
 
-      const promise = cardsServices.createCard(cardMock, projectMock.ownerId);
+      const promise = cardsServices.createCard(cardMock, userIdMock);
 
       expect(promise).resolves.toStrictEqual({
         title: cardMock.title,

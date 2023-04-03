@@ -87,6 +87,37 @@ describe("POST /projects", () => {
       );
     });
 
+    it("should correctly save user to project participants on database", async () => {
+      const user = await createUser();
+      const body = generateValidBody();
+      const token = await generateValidToken(user);
+
+      await server
+        .post("/projects")
+        .set("Authorization", `Bearer ${token}`)
+        .send(body);
+
+      const project = await prisma.project.findFirst({
+        where: { ownerId: user.id },
+      });
+
+      const participant = await prisma.participant.findUnique({
+        where: {
+          userId_projectId: {
+            userId: user.id,
+            projectId: project.id,
+          },
+        },
+      });
+
+      expect(participant).toStrictEqual({
+        id: expect.any(String),
+        userId: user.id,
+        projectId: project.id,
+        isAdmin: true,
+      });
+    });
+
     it("should return the correct response body", async () => {
       const user = await createUser();
       const body = generateValidBody();

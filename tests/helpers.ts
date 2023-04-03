@@ -10,6 +10,7 @@ export async function cleanDb() {
   await prisma.cardActivity.deleteMany({});
   await prisma.card.deleteMany({});
   await prisma.list.deleteMany({});
+  await prisma.participant.deleteMany({});
   await prisma.project.deleteMany({});
   await prisma.session.deleteMany({});
   await prisma.user.deleteMany({});

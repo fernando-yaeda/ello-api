@@ -10,6 +10,13 @@ export async function createProject(user?: User): Promise<Project> {
     data: {
       name: faker.random.words(),
       ownerId: incomingUser.id,
+
+      participants: {
+        create: {
+          isAdmin: true,
+          userId: incomingUser.id,
+        },
+      },
     },
   });
 }

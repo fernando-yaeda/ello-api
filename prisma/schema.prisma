@@ -18,9 +18,10 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  sessions       Session[]
-  ownProjects    Project[]
-  cardActivities CardActivity[]
+  sessions        Session[]
+  ownProjects     Project[]
+  cardActivities  CardActivity[]
+  participatingAt Participant[]
 
   @@map("users")
 }
@@ -36,6 +37,18 @@ model Session {
   @@map("sessions")
 }
 
+model Participant {
+  id        String  @id @default(uuid())
+  userId    String
+  projectId String
+  isAdmin   Boolean
+
+  user    User    @relation(fields: [userId], references: [id])
+  project Project @relation(fields: [projectId], references: [id])
+
+  @@unique([userId, projectId])
+}
+
 model Project {
   id        String   @id @default(uuid())
   name      String
@@ -45,8 +58,9 @@ model Project {
 
   owner User @relation(fields: [ownerId], references: [id])
 
-  lists  List[]
-  labels Label[]
+  lists        List[]
+  labels       Label[]
+  participants Participant[]
 
   @@map("projects")
 }
@@ -97,8 +111,8 @@ model CardActivity {
   createdAt       DateTime @default(now())
   performedBy     String
 
-  user   User   @relation(fields: [performedBy], references: [id])
-  card   Card   @relation(fields: [cardId], references: [id])
+  user User @relation(fields: [performedBy], references: [id])
+  card Card @relation(fields: [cardId], references: [id])
 
   @@map("card_activity")
 }

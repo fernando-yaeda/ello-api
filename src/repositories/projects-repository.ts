@@ -1,13 +1,31 @@
 import { prisma } from "@/config";
-import { Project } from "@prisma/client";
+import { Project, Participant } from "@prisma/client";
 
-async function create(data: CreateProjectParams): Promise<Project> {
+async function create(createData: CreateProjectParams): Promise<
+  Project & {
+    participants: Participant[];
+  }
+> {
   return await prisma.project.create({
-    data,
+    data: {
+      name: createData.name,
+      ownerId: createData.ownerId,
+
+      participants: {
+        create: {
+          isAdmin: true,
+          userId: createData.ownerId,
+        },
+      },
+    },
+
+    include: {
+      participants: true,
+    },
   });
 }
 
-async function findById(projectId: string): Promise<Project | null> {
+async function findById(projectId: string): Promise<Project> {
   return await prisma.project.findUnique({
     where: {
       id: projectId,
