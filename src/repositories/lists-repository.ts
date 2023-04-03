@@ -7,7 +7,7 @@ async function create(data: CreateListParams): Promise<List> {
   });
 }
 
-async function findById(listId: string): Promise<List | null> {
+async function findById(listId: string): Promise<List> {
   return await prisma.list.findUnique({
     where: {
       id: listId,
