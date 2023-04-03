@@ -13,17 +13,43 @@ describe("projects-service test suite", () => {
       ownerId: faker.datatype.uuid(),
     };
 
+    const projectIdMock = faker.datatype.uuid();
+
+    const participantIdMock = faker.datatype.uuid();
+
     it("should be able to create an project", async () => {
       jest
         .spyOn(projectsRepository, "create")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return projectMock;
+          return {
+            id: projectIdMock,
+            ...projectMock,
+            participants: [
+              {
+                id: participantIdMock,
+                userId: projectMock.ownerId,
+                projectId: projectIdMock,
+                isAdmin: true,
+              },
+            ],
+          };
         });
 
       const promise = projectService.createProject(projectMock);
 
-      expect(promise).resolves.toStrictEqual(projectMock);
+      expect(promise).resolves.toStrictEqual({
+        id: projectIdMock,
+        ...projectMock,
+        participants: [
+          {
+            id: participantIdMock,
+            userId: projectMock.ownerId,
+            projectId: projectIdMock,
+            isAdmin: true,
+          },
+        ],
+      });
     });
   });
 
