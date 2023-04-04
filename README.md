@@ -15,7 +15,7 @@ ello api is a clone of Trello api, where you can create
 
 ## Running for development
 1. clone this repository
-2. install al dependencies
+2. install all dependencies
 ```bash
 npm i
 ```
