@@ -3,3 +3,4 @@ export * from "./authentication-router";
 export * from "./project-router";
 export * from "./list-router";
 export * from "./card-router";
+export * from "./label-router";
