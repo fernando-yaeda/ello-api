@@ -29,7 +29,7 @@ npm run migration:run
 ```bass
 npm run npx prisma db seed
 ```
-- there is currently an error when running `npm run dev:seed`, so when using docker, you will need to `npm run dev:docker` -> `docker exec -it <api container id>` -> `npx prisma db seed`
+- there is currently an error when running `npm run dev:seed`, so when using docker, you will need to `npm run dev:docker` -> `docker exec -it <api container id> /bin/bash` -> `npx prisma db seed`
 
 7. run the back-end in a development environment
 ```bash
