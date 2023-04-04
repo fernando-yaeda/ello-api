@@ -38,7 +38,7 @@ npm run dev
 
 ## Running application locally or inside docker
 
-`.env.development` and `.env.test` must be changed if you want to run the application locally or inside docker. You can populate the .env files bassed on `.env.example`, but you need to consider the following:
+`.env.development` and `.env.test` must be changed if you want to run the application locally or inside docker. You can populate the .env files based on `.env.example`, but you need to consider the following:
 - running application locally (postgres and node):
 Add your postgres credentials and make sure to create given database before running the application
 - running application inside docker:
