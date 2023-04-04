@@ -14,6 +14,12 @@ export function handleApplicationErrors(
     });
   }
 
+  if (err.name === "ProjectNotFoundError") {
+    return res.status(httpStatus.NOT_FOUND).send({
+      message: err.message,
+    });
+  }
+
   _next();
 
   /* eslint-disable-next-line no-console */
