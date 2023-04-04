@@ -15,6 +15,7 @@ import {
   projectsRouter,
   listsRouter,
   cardsRouter,
+  labelsRouter,
 } from "@/routers";
 
 app
@@ -28,6 +29,7 @@ app
   .use("/projects", projectsRouter)
   .use("/lists", listsRouter)
   .use("/cards", cardsRouter)
+  .use("/labels", labelsRouter)
   .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {
