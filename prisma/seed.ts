@@ -1,10 +1,9 @@
 import { PrismaClient } from "@prisma/client";
 import { colors } from "./colors";
-import { Color } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  const user = await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: "testing@testing.com" },
     update: {},
     create: {
@@ -14,10 +13,12 @@ async function main() {
     },
   });
 
-  colors.forEach((color) => {
-    prisma.color.create(
-        {data: color}
-    );
+  colors.forEach(async (color) => {
+    await prisma.color.upsert({
+        where: {name: color.name},
+        update: color,
+        create: color
+    });
   });
 }
 
