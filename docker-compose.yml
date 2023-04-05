@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 services:
   ello-production:
     env_file:
@@ -8,10 +8,10 @@ services:
       dockerfile: Dockerfile
     container_name: ello-back
     logging:
-      driver: 'json-file'
+      driver: "json-file"
       options:
-        max-size: '10m'
-        max-file: '5'
+        max-size: "10m"
+        max-file: "5"
     working_dir: /usr/src/ello
     command: bash -c "npx prisma generate && npx prisma migrate deploy && npm run start"
     restart: always
