@@ -10,14 +10,15 @@ export async function labelPost(
   res: Response,
   next: NextFunction
 ): Promise<Response> {
-  const userId = res.locals.userId;
-  const { title, projectId, colorName } = req.body;
+  const projectId = req.params.projectId;
+  const { title, colorName } = req.body;
 
   try {
-    const label = await labelServices.createLabel(
-      { title, projectId, colorName },
-      userId
-    );
+    const label = await labelServices.createLabel({
+      title,
+      projectId,
+      colorName,
+    });
 
     return res.status(httpStatus.CREATED).json({
       labelId: label.id,
@@ -26,7 +27,7 @@ export async function labelPost(
     });
   } catch (error) {
     if (error.name === "ColorNotFoundError") {
-      return res.status(httpStatus.BAD_REQUEST).send(error);
+      return res.status(httpStatus.NOT_FOUND).send(error);
     }
     next(error);
   }
