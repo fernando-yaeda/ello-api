@@ -2,8 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { prisma } from "@/config";
 import { Color, Label, Project } from "@prisma/client";
-import { createProject } from "./projects-factory";
-import { createColor } from "./colors-factory";
+import { createProject, createColor } from "./";
 
 export async function createLabel({
   title,

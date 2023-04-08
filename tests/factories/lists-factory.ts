@@ -1,8 +1,7 @@
 import { List, Project, User } from "@prisma/client";
 import { prisma } from "@/config";
 import { faker } from "@faker-js/faker";
-import { createUser } from "./users-factory";
-import { createProject } from "./projects-factory";
+import { createUser, createProject } from "./";
 
 export async function createList({
   user,

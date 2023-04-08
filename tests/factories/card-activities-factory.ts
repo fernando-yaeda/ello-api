@@ -1,7 +1,6 @@
 import { prisma } from "@/config";
 import { Card, CardActivity, User } from "@prisma/client";
-import { createUser } from "./users-factory";
-import { createCard } from "./cards-factory";
+import { createUser, createCard } from "./";
 
 export async function createCardActivity({
   user,

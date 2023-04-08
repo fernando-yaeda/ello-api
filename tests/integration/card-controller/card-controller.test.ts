@@ -6,12 +6,15 @@ import app, { init } from "@/app";
 import { prisma } from "@/config";
 import { cleanDb, generateValidToken } from "../../helpers";
 
-import { createProject, createUser } from "../../factories";
-import { createList } from "../../factories/lists-factory";
+import {
+  createProject,
+  createUser,
+  createList,
+  createCard,
+  createCardActivity,
+} from "../../factories";
 import { invalidBodyDataSet } from "./card-controller-dataset";
 import { CardActivity, User } from "@prisma/client";
-import { createCard } from "../../factories/cards-factory";
-import { createCardActivity } from "../../factories/card-activities-factory";
 
 beforeAll(async () => {
   await init();

@@ -2,8 +2,7 @@ import { faker } from "@faker-js/faker";
 
 import { prisma } from "@/config";
 import { Card, List, Project } from "@prisma/client";
-import { createList } from "./lists-factory";
-import { createProject } from "./projects-factory";
+import { createList, createProject } from "./";
 
 export async function createCard({
   title,
