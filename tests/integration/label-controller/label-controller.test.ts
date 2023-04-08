@@ -1,12 +1,15 @@
-import app, { init } from "@/app";
-import { prisma } from "@/config";
 import { faker } from "@faker-js/faker";
 import httpStatus from "http-status";
 import supertest from "supertest";
+
+import app, { init } from "@/app";
+import { prisma } from "@/config";
 import { cleanDb, generateValidToken } from "../../helpers";
+
 import { invalidBodyDataSet } from "./label-controller-dataset";
 import { createColor, createProject, createUser } from "../../factories";
 import { CreateLabelParams } from "@/repositories/labels-repository";
+import { Color, User } from "@prisma/client";
 
 beforeAll(async () => {
   await init();
@@ -15,13 +18,39 @@ beforeAll(async () => {
 
 const server = supertest(app);
 
+let user: User;
+let token: string;
+let projectId: string;
+let color: Color;
+
+beforeEach(async () => {
+  user = await createUser();
+  token = await generateValidToken(user);
+  const project = await createProject(user);
+  color = await createColor();
+
+  projectId = project.id;
+});
+
 describe("POST /labels", () => {
+  describe("when user is unauthenticated", () => {
+    it("should return 401 and unauthenticated error when authorization token is invalid", async () => {
+      const response = await server
+        .post(`/projects/${projectId}/labels`)
+        .set("Authorization", `Bearer ${faker.datatype.string()}`);
+
+      expect(response.status).toStrictEqual(httpStatus.UNAUTHORIZED);
+      expect(response.body).toStrictEqual({
+        name: "UnauthorizedError",
+        message: "You need to authenticate to access this content",
+      });
+    });
+  });
+
   describe("when body is invalid", () => {
     it("should return status 400 when body is not given", async () => {
-      const token = await generateValidToken();
-
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`);
 
       const findLabel = await prisma.label.findMany({});
@@ -33,10 +62,8 @@ describe("POST /labels", () => {
     it.each(invalidBodyDataSet)(
       "should return status 400 when body is not valid",
       async (invalidBody) => {
-        const token = await generateValidToken();
-
         const response = await server
-          .post("/labels")
+          .post(`/projects/${projectId}/labels`)
           .set("Authorization", `Bearer ${token}`)
           .send(invalidBody);
 
@@ -49,47 +76,29 @@ describe("POST /labels", () => {
   });
 
   describe("when body is valid", () => {
-    const generateValidBody = ({
-      projectId,
-      colorName,
-    }: Partial<CreateLabelParams>) => ({
-      title: faker.random.words(),
-      projectId: projectId || faker.datatype.uuid(),
-      colorName: colorName || faker.random.words(),
+    let validBody: Partial<CreateLabelParams>;
+
+    beforeEach(() => {
+      validBody = {
+        title: faker.random.words(),
+        colorName: color.name,
+      };
     });
 
     it("should return status 201 given valid body", async () => {
-      const user = await createUser();
-      const project = await createProject(user);
-      const color = await createColor();
-      const token = await generateValidToken(user);
-      const body = generateValidBody({
-        projectId: project.id,
-        colorName: color.name,
-      });
-
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       expect(response.status).toStrictEqual(httpStatus.CREATED);
     });
 
     it("should save label on database", async () => {
-      const user = await createUser();
-      const project = await createProject(user);
-      const color = await createColor();
-      const token = await generateValidToken(user);
-      const body = generateValidBody({
-        projectId: project.id,
-        colorName: color.name,
-      });
-
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       const label = await prisma.label.findUnique({
         where: { id: response.body.labelId },
@@ -98,7 +107,7 @@ describe("POST /labels", () => {
       expect(label).toStrictEqual({
         id: response.body.labelId,
         title: response.body.title,
-        projectId: project.id,
+        projectId: projectId,
         colorName: response.body.colorName,
         createdAt: expect.any(Date),
         updatedAt: expect.any(Date),
@@ -106,19 +115,10 @@ describe("POST /labels", () => {
     });
 
     it("should return the correct response body", async () => {
-      const user = await createUser();
-      const project = await createProject(user);
-      const color = await createColor();
-      const token = await generateValidToken(user);
-      const body = generateValidBody({
-        projectId: project.id,
-        colorName: color.name,
-      });
-
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       const label = await prisma.label.findUnique({
         where: { id: response.body.labelId },
@@ -131,40 +131,50 @@ describe("POST /labels", () => {
       });
     });
 
-    it("should return status 404 if project does not exist", async () => {
-      const projectId = faker.datatype.uuid();
-      const user = await createUser();
-      const color = await createColor();
-      const token = await generateValidToken(user);
-      const body = generateValidBody({
-        projectId: projectId,
-        colorName: color.name,
-      });
+    it("should return status 404 if color does not exist", async () => {
+      validBody.colorName = faker.random.word();
 
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       expect(response.status).toStrictEqual(httpStatus.NOT_FOUND);
+      expect(response.body).toStrictEqual({
+        name: "ColorNotFoundError",
+        message: "There is no color with given colorName",
+      });
+    });
+
+    it("should return status 404 if project does not exist", async () => {
+      projectId = faker.datatype.uuid();
+
+      const response = await server
+        .post(`/projects/${projectId}/labels`)
+        .set("Authorization", `Bearer ${token}`)
+        .send(validBody);
+
+      expect(response.status).toStrictEqual(httpStatus.NOT_FOUND);
+      expect(response.body).toStrictEqual({
+        name: "ProjectNotFoundError",
+        message: "There is no project with given id",
+      });
     });
 
     it("should return status 403 if user is not a project participant", async () => {
-      const user = await createUser();
-      const project = await createProject();
-      const color = await createColor();
-      const token = await generateValidToken(user);
-      const body = generateValidBody({
-        projectId: project.id,
-        colorName: color.name,
-      });
+      user = await createUser();
+      token = await generateValidToken(user);
 
       const response = await server
-        .post("/labels")
+        .post(`/projects/${projectId}/labels`)
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       expect(response.status).toStrictEqual(httpStatus.FORBIDDEN);
+      expect(response.body).toStrictEqual({
+        name: "NotParticipantError",
+        message: "You are not a participant on this project",
+      });
     });
   });
 });
