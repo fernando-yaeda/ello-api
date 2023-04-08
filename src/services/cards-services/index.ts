@@ -1,21 +1,15 @@
-import projectService from "../projects-services";
-import participantServices from "../participant-services";
-import listsServices from "../lists-services";
 import cardActivityServices from "../card-activities-services";
 
 import cardsRepository, {
   CreateCardParams,
 } from "@/repositories/cards-repository";
-import { Card } from "@prisma/client";
+import { Card, CardActivity, CardLabel } from "@prisma/client";
+import { CardNotFoundError } from "./errors";
 
 async function createCard(
   { title, listId }: CreateCardParams,
   userId: string
 ): Promise<Card> {
-  const list = await listsServices.validateListOrFail(listId);
-  await projectService.validateProjectOrFail(list.projectId);
-  await participantServices.validateParticipant(userId, list.projectId);
-
   const card = await cardsRepository.create({
     title,
     listId,
@@ -32,8 +26,19 @@ async function createCard(
   return card;
 }
 
+async function getById(
+  cardId: string
+): Promise<Card & { cardLabels: CardLabel[]; activity: CardActivity[] }> {
+  const card = await cardsRepository.findById(cardId);
+
+  if (!card) throw CardNotFoundError();
+
+  return card;
+}
+
 const cardServices = {
   createCard,
+  getById,
 };
 
 export * from "./errors";
