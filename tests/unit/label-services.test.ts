@@ -1,120 +1,68 @@
 import { faker } from "@faker-js/faker";
 
-import projectService, {
-  projectNotFoundError,
-} from "@/services/projects-services";
-import participantServices, {
-  notParticipantError,
-} from "@/services/participant-services";
 import colorServices, { colorNotFoundError } from "@/services/color-services";
 
 import labelsRepository, {
   CreateLabelParams,
 } from "@/repositories/labels-repository";
 import labelServices from "@/services/label-services";
+import { Label } from "@prisma/client";
 
-describe("label-services test suite", () => {
+describe("labelMock-services test suite", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  jest.mock("@/repositories/labels-repository", () => {
+    create: jest.fn();
+  });
+
+  jest.mock("@/services/color-services", () => ({
+    getByName: jest.fn(),
+  }));
+
+  const labelMock: Label = {
+    id: faker.datatype.uuid(),
+    title: faker.random.word(),
+    projectId: faker.datatype.uuid(),
+    colorName: faker.color.human(),
+    createdAt: faker.datatype.datetime(),
+    updatedAt: faker.datatype.datetime(),
+  };
+
   describe("createLabel test suite", () => {
-    const labelMock: CreateLabelParams = {
-      projectId: faker.datatype.uuid(),
-      title: faker.random.words(),
-      colorName: faker.color.rgb({ format: "css" }),
+    const createLabel: CreateLabelParams = {
+      projectId: labelMock.projectId,
+      title: labelMock.title,
+      colorName: labelMock.colorName,
     };
-
-    const userIdMock = faker.datatype.uuid();
-
-    it("should thow error if project is not valid", async () => {
-      jest
-        .spyOn(projectService, "validateProjectOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          throw projectNotFoundError();
-        });
-
-      const promise = labelServices.createLabel(labelMock, userIdMock);
-
-      expect(promise).rejects.toStrictEqual(projectNotFoundError());
-    });
-
-    it("should thow error if user is not a project participant", async () => {
-      jest
-        .spyOn(projectService, "validateProjectOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      jest
-        .spyOn(participantServices, "validateParticipant")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          throw notParticipantError();
-        });
-
-      const promise = labelServices.createLabel(labelMock, userIdMock);
-
-      expect(promise).rejects.toStrictEqual(notParticipantError());
-    });
 
     it("should throw error if colorName is not valid", async () => {
       jest
-        .spyOn(projectService, "validateProjectOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      jest
-        .spyOn(participantServices, "validateParticipant")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      jest
         .spyOn(colorServices, "getByName")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          throw colorNotFoundError();
-        });
+        .mockRejectedValueOnce(colorNotFoundError());
 
-      const promise = labelServices.createLabel(labelMock, userIdMock);
+      const promise = labelServices.createLabel(createLabel);
 
       expect(promise).rejects.toStrictEqual(colorNotFoundError());
+      expect(jest.spyOn(labelsRepository, "create")).not.toHaveBeenCalled();
     });
 
-    it("should return correcly label given valid input", async () => {
-      jest
-        .spyOn(projectService, "validateProjectOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
+    it("should return correcly labelMock given valid input", async () => {
+      jest.spyOn(colorServices, "getByName").mockResolvedValueOnce({
+        id: faker.datatype.uuid(),
+        name: labelMock.colorName,
+        color: faker.color.rgb({ format: "css" }),
+      });
 
-      jest
-        .spyOn(participantServices, "validateParticipant")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
+      jest.spyOn(labelsRepository, "create").mockResolvedValueOnce(labelMock);
 
-      jest
-        .spyOn(colorServices, "getByName")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
+      const label = await labelServices.createLabel(createLabel);
 
-      jest
-        .spyOn(labelsRepository, "create")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return labelMock;
-        });
-
-      const promise = labelServices.createLabel(labelMock, userIdMock);
-
-      expect(promise).resolves.toStrictEqual(labelMock);
+      expect(label).toStrictEqual(labelMock);
+      expect(colorServices.getByName).toBeCalledWith(createLabel.colorName);
+      expect(labelsRepository.create).toBeCalledWith(createLabel);
     });
   });
 });

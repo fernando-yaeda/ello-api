@@ -9,14 +9,7 @@ loadEnv();
 const app = express();
 
 import { handleApplicationErrors } from "@/middlewares";
-import {
-  usersRouter,
-  authenticationRouter,
-  projectsRouter,
-  listsRouter,
-  cardsRouter,
-  labelsRouter,
-} from "@/routers";
+import { usersRouter, authenticationRouter, projectsRouter } from "@/routers";
 
 app
   .use(cors())
@@ -27,9 +20,6 @@ app
   .use("/users", usersRouter)
   .use("/auth", authenticationRouter)
   .use("/projects", projectsRouter)
-  .use("/lists", listsRouter)
-  .use("/cards", cardsRouter)
-  .use("/labels", labelsRouter)
   .use(handleApplicationErrors);
 
 export function init(): Promise<Express> {

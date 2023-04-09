@@ -1,96 +1,86 @@
-import projectService, {
-  projectNotFoundError,
-} from "@/services/projects-services";
+import { faker } from "@faker-js/faker";
+
 import projectsRepository, {
   CreateProjectParams,
 } from "@/repositories/projects-repository";
-import { faker } from "@faker-js/faker";
+import projectService, {
+  projectNotFoundError,
+} from "@/services/projects-services";
+import { Participant, Project } from "@prisma/client";
 
 describe("projects-service test suite", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  jest.mock("@/repositories/projects-repository", () => ({
+    create: jest.fn(),
+    findById: jest.fn(),
+  }));
+
+  const userId = faker.datatype.uuid();
+
+  const projectMock: Project = {
+    id: faker.datatype.uuid(),
+    name: faker.random.word(),
+    ownerId: userId,
+    createdAt: faker.datatype.datetime(),
+    updatedAt: faker.datatype.datetime(),
+  };
+
+  const participantsMock: Participant = {
+    id: faker.datatype.uuid(),
+    userId: userId,
+    projectId: faker.datatype.uuid(),
+    isAdmin: true,
+  };
+
   describe("createProject test suite", () => {
-    const projectMock: CreateProjectParams = {
+    const createProject: CreateProjectParams = {
       name: faker.random.words(),
-      ownerId: faker.datatype.uuid(),
+      ownerId: userId,
     };
 
-    const projectIdMock = faker.datatype.uuid();
-
-    const participantIdMock = faker.datatype.uuid();
-
     it("should be able to create an project", async () => {
-      jest
-        .spyOn(projectsRepository, "create")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return {
-            id: projectIdMock,
-            ...projectMock,
-            participants: [
-              {
-                id: participantIdMock,
-                userId: projectMock.ownerId,
-                projectId: projectIdMock,
-                isAdmin: true,
-              },
-            ],
-          };
-        });
-
-      const promise = projectService.createProject(projectMock);
-
-      expect(promise).resolves.toStrictEqual({
-        id: projectIdMock,
+      jest.spyOn(projectsRepository, "create").mockResolvedValueOnce({
         ...projectMock,
-        participants: [
-          {
-            id: participantIdMock,
-            userId: projectMock.ownerId,
-            projectId: projectIdMock,
-            isAdmin: true,
-          },
-        ],
+        participants: [participantsMock],
       });
+
+      const project = await projectService.createProject(createProject);
+
+      expect(project).toStrictEqual({
+        ...projectMock,
+        participants: [participantsMock],
+      });
+      expect(projectsRepository.create).toBeCalledWith({
+        name: createProject.name,
+        ownerId: createProject.ownerId,
+      });
+      expect(project.ownerId).toStrictEqual(createProject.ownerId);
+      expect(project.participants[0]).toStrictEqual(participantsMock);
     });
   });
 
-  describe("validateProjectOrFail test suite", () => {
-    const projectIdMock = faker.datatype.uuid();
+  describe("getById test suite", () => {
+    it("should throw an error if given projectId is invalid", async () => {
+      jest.spyOn(projectsRepository, "findById").mockReturnValueOnce(undefined);
 
-    const projectMock: CreateProjectParams = {
-      name: faker.random.words(),
-      ownerId: faker.datatype.uuid(),
-    };
-
-    it("should throw an error if project does not exist", async () => {
-      jest
-        .spyOn(projectsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return null;
-        });
-
-      const promise = projectService.validateProjectOrFail(projectIdMock);
+      const promise = projectService.getById(projectMock.id);
 
       expect(promise).rejects.toStrictEqual(projectNotFoundError());
+      expect(projectsRepository.findById).toBeCalledWith(projectMock.id);
     });
 
     it("should return project given an correct projectId", async () => {
       jest
         .spyOn(projectsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return {
-            ...projectMock,
-            projectIdMock,
-          };
-        });
+        .mockResolvedValueOnce(projectMock);
 
-      const promise = projectService.validateProjectOrFail(projectIdMock);
+      const project = await projectService.getById(projectMock.id);
 
-      expect(promise).resolves.toStrictEqual({
-        ...projectMock,
-        projectIdMock,
-      });
+      expect(project).toStrictEqual(projectMock);
+      expect(projectsRepository.findById).toBeCalledWith(projectMock.id);
     });
   });
 });

@@ -9,7 +9,7 @@ export async function createColor(
 ): Promise<Color> {
   return prisma.color.create({
     data: {
-      name: name || faker.random.words(),
+      name: name || faker.random.word(),
       color: color || faker.color.rgb({ format: "css" }),
     },
   });

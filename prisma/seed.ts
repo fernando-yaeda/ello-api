@@ -15,9 +15,9 @@ async function main() {
 
   colors.forEach(async (color) => {
     await prisma.color.upsert({
-        where: {name: color.name},
-        update: color,
-        create: color
+      where: { name: color.name },
+      update: color,
+      create: color,
     });
   });
 }

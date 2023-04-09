@@ -8,20 +8,17 @@ export async function listsPost(
   res: Response,
   next: NextFunction
 ): Promise<Response> {
-  const userId = res.locals.userId;
-  const { name, projectId } = req.body;
+  const { name } = req.body;
+  const projectId = req.params.projectId;
 
   try {
-    const list = await listsServices.createList({ name, projectId }, userId);
+    const list = await listsServices.createList({ name, projectId });
 
     return res.status(httpStatus.CREATED).json({
       listId: list.id,
       name: list.name,
     });
   } catch (error) {
-    if (error.name === "ProjectNotFoundError") {
-      return res.status(httpStatus.NOT_FOUND).send(error);
-    }
     next(error);
   }
 }
