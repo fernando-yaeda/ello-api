@@ -1,11 +1,14 @@
-import app, { init } from "@/app";
-import { prisma } from "@/config";
 import { faker } from "@faker-js/faker";
 import httpStatus from "http-status";
 import supertest from "supertest";
-import { createUser } from "../../factories";
+
+import app, { init } from "@/app";
+import { prisma } from "@/config";
 import { cleanDb, generateValidToken } from "../../helpers";
+
+import { createUser } from "../../factories";
 import { invalidBodyDataSet } from "./project-controller-dataset";
+import { User } from "@prisma/client";
 
 beforeAll(async () => {
   await init();
@@ -14,11 +17,31 @@ beforeAll(async () => {
 
 const server = supertest(app);
 
+let user: User;
+let token: string;
+
+beforeEach(async () => {
+  user = await createUser();
+  token = await generateValidToken(user);
+});
+
 describe("POST /projects", () => {
+  describe("when user is unauthenticated", () => {
+    it("should return 401 and unauthenticated error when authorization token is invalid", async () => {
+      const response = await server
+        .post(`/projects`)
+        .set("Authorization", `Bearer ${faker.datatype.string()}`);
+
+      expect(response.status).toStrictEqual(httpStatus.UNAUTHORIZED);
+      expect(response.body).toStrictEqual({
+        name: "UnauthorizedError",
+        message: "You need to authenticate to access this content",
+      });
+    });
+  });
+
   describe("when body is invalid", () => {
     it("should return status 400 when body is not given", async () => {
-      const token = await generateValidToken();
-
       const response = await server
         .post("/projects")
         .set("Authorization", `Bearer ${token}`);
@@ -32,8 +55,6 @@ describe("POST /projects", () => {
     it.each(invalidBodyDataSet)(
       "should return status 400 when body is not valid",
       async (invalidBody) => {
-        const token = await generateValidToken();
-
         const response = await server
           .post("/projects")
           .set("Authorization", `Bearer ${token}`)
@@ -48,54 +69,47 @@ describe("POST /projects", () => {
   });
 
   describe("when body is valid", () => {
-    const generateValidBody = () => ({
-      name: faker.random.words(),
+    let validBody: { name: string };
+
+    beforeEach(() => {
+      validBody = {
+        name: faker.random.words(),
+      };
     });
 
     it("should return status 201 given valid body", async () => {
-      const user = await createUser();
-      const body = generateValidBody();
-      const token = await generateValidToken(user);
-
       const response = await server
         .post("/projects")
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       expect(response.status).toBe(httpStatus.CREATED);
     });
 
     it("should save project on database", async () => {
-      const user = await createUser();
-      const body = generateValidBody();
-      const token = await generateValidToken(user);
-
       const response = await server
         .post("/projects")
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       const project = await prisma.project.findFirst({
         where: { ownerId: user.id },
       });
 
-      expect(project).toEqual(
-        expect.objectContaining({
-          name: response.body.name,
-          ownerId: response.body.ownerId,
-        })
-      );
+      expect(project).toStrictEqual({
+        id: expect.any(String),
+        name: response.body.name,
+        ownerId: response.body.ownerId,
+        createdAt: expect.any(Date),
+        updatedAt: expect.any(Date),
+      });
     });
 
     it("should correctly save user to project participants on database", async () => {
-      const user = await createUser();
-      const body = generateValidBody();
-      const token = await generateValidToken(user);
-
       await server
         .post("/projects")
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       const project = await prisma.project.findFirst({
         where: { ownerId: user.id },
@@ -119,14 +133,10 @@ describe("POST /projects", () => {
     });
 
     it("should return the correct response body", async () => {
-      const user = await createUser();
-      const body = generateValidBody();
-      const token = await generateValidToken(user);
-
       const response = await server
         .post("/projects")
         .set("Authorization", `Bearer ${token}`)
-        .send(body);
+        .send(validBody);
 
       const project = await prisma.project.findFirst({
         where: { ownerId: user.id },

@@ -4,7 +4,6 @@ import httpStatus from "http-status";
 import jwt from "jsonwebtoken";
 
 import authenticationServices from "@/services/authentication-services";
-import { ApplicationError } from "@/protocols";
 
 export async function authenticateToken(
   req: AuthenticatedRequest,

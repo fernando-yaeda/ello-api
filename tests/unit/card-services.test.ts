@@ -1,148 +1,117 @@
 import { faker } from "@faker-js/faker";
 
-import listsRepository from "@/repositories/lists-repository";
-import listsServices, { listNotFoundError } from "@/services/lists-services";
-
-import projectsRepository from "@/repositories/projects-repository";
-import projectService, {
-  projectNotFoundError,
-} from "@/services/projects-services";
-
-import participantsRepository from "@/repositories/participants-repository";
-import participantServices, {
-  notParticipantError,
-} from "@/services/participant-services";
-
 import cardActivityServices from "@/services/card-activities-services";
 
 import cardsRepository, {
   CreateCardParams,
 } from "@/repositories/cards-repository";
-import cardsServices from "@/services/cards-services";
+import cardsServices, { CardNotFoundError } from "@/services/cards-services";
+import { Card } from "@prisma/client";
 
 describe("cards-service test suite", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  jest.mock("@/services/card-activities-services", () => ({
+    createCardActivity: jest.fn(),
+  }));
+
+  jest.mock("@/repositories/cards-repository", () => ({
+    create: jest.fn(),
+    findById: jest.fn(),
+  }));
+
+  const userId = faker.datatype.uuid();
+
+  const cardMock: Card = {
+    id: faker.datatype.uuid(),
+    title: faker.random.words(),
+    description: null,
+    listId: faker.datatype.uuid(),
+  };
+
   describe("createCard test suite", () => {
-    const userIdMock = faker.datatype.uuid();
-
-    const projectMock = {
-      id: faker.datatype.uuid(),
-      name: faker.random.words(),
-      ownerId: userIdMock,
-    };
-
-    const listMock = {
-      id: faker.datatype.uuid(),
-      name: faker.random.words(),
-      projectId: projectMock.id,
-    };
-
-    const cardMock: CreateCardParams = {
+    const createCard: CreateCardParams = {
       title: faker.random.words(),
-      listId: listMock.id,
+      listId: faker.datatype.uuid(),
     };
-
-    it("should throw not found error if list does not exist", async () => {
-      jest
-        .spyOn(listsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      const promise = cardsServices.createCard(cardMock, userIdMock);
-
-      expect(promise).rejects.toStrictEqual(listNotFoundError());
-    });
-
-    it("should throw not found error if project does not exist", async () => {
-      jest
-        .spyOn(listsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return listMock;
-        });
-
-      jest
-        .spyOn(projectsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      const promise = cardsServices.createCard(cardMock, userIdMock);
-
-      expect(promise).rejects.toStrictEqual(projectNotFoundError());
-    });
-
-    it("should throw not allowed error if user is not a project participant", async () => {
-      jest
-        .spyOn(listsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return listMock;
-        });
-
-      jest
-        .spyOn(projectsRepository, "findById")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return projectMock;
-        });
-
-      jest
-        .spyOn(participantsRepository, "findByIndex")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      const promise = cardsServices.createCard(cardMock, userIdMock);
-
-      expect(promise).rejects.toStrictEqual(notParticipantError());
-    });
 
     it("should be able to create card", async () => {
-      jest
-        .spyOn(listsServices, "validateListOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return listMock;
-        });
-
-      jest
-        .spyOn(projectService, "validateProjectOrFail")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
-
-      jest
-        .spyOn(participantServices, "validateParticipant")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
+      const createCardActivityMock = jest
+        .spyOn(cardActivityServices, "createCardActivity")
+        .mockResolvedValue(undefined);
 
       jest
         .spyOn(cardsRepository, "create")
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         .mockImplementationOnce((): any => {
-          return cardMock;
+          return {
+            ...cardMock,
+            title: createCard.title,
+            listId: createCard.listId,
+          };
         });
 
-      jest
-        .spyOn(cardActivityServices, "createCardActivity")
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .mockImplementationOnce((): any => {
-          return;
-        });
+      const card = await cardsServices.createCard(cardMock, userId);
 
-      const promise = cardsServices.createCard(cardMock, userIdMock);
-
-      expect(promise).resolves.toStrictEqual({
-        title: cardMock.title,
-        listId: cardMock.listId,
+      expect(card).toStrictEqual({
+        ...cardMock,
+        title: createCard.title,
+        listId: createCard.listId,
       });
+      expect(createCardActivityMock).toHaveBeenCalledWith({
+        cardId: card.id,
+        actionPerformed: "created",
+        performedBy: userId,
+      });
+    });
+  });
+
+  describe("getById test suite", () => {
+    const cardId = faker.datatype.uuid();
+
+    const cardMockWithActivityAndLabel = {
+      ...cardMock,
+      cardLabels: [
+        {
+          id: faker.datatype.uuid(),
+          cardId: cardMock.id,
+          labelId: faker.datatype.uuid(),
+          createdAt: faker.datatype.datetime(),
+          updatedAt: faker.datatype.datetime(),
+        },
+      ],
+      activity: [
+        {
+          id: faker.datatype.uuid(),
+          cardId: cardMock.id,
+          actionPerformed: faker.random.word(),
+          performedBy: faker.datatype.uuid(),
+          createdAt: faker.datatype.datetime(),
+          updatedAt: faker.datatype.datetime(),
+        },
+      ],
+    };
+
+    it("should throw error if given cardId is invalid", async () => {
+      jest.spyOn(cardsRepository, "findById").mockReturnValueOnce(undefined);
+
+      const promise = cardsServices.getById(cardId);
+
+      expect(cardsRepository.findById).toBeCalledWith(cardId);
+      expect(promise).rejects.toStrictEqual(CardNotFoundError());
+    });
+
+    it("should return a card with labels and activity if given cardId is valid", async () => {
+      jest
+        .spyOn(cardsRepository, "findById")
+        .mockResolvedValueOnce(cardMockWithActivityAndLabel);
+
+      const card = await cardsServices.getById(cardId);
+
+      expect(cardsRepository.findById).toBeCalledWith(cardId);
+      expect(card).toStrictEqual(cardMockWithActivityAndLabel);
     });
   });
 });

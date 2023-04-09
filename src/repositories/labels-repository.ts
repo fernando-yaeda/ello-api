@@ -14,13 +14,14 @@ async function find(id: string) {
 }
 
 export type CreateLabelParams = {
-  projectId: string;
   title: string;
+  projectId: string;
   colorName: string;
 };
 
 const labelsRepository = {
   create,
+  find,
 };
 
 export default labelsRepository;

@@ -18,9 +18,7 @@ async function createProject({
   return project;
 }
 
-async function validateProjectOrFail(
-  projectId: string
-): Promise<Project | ApplicationError> {
+async function getById(projectId: string): Promise<Project | ApplicationError> {
   const project = await projectsRepository.findById(projectId);
 
   if (!project) throw projectNotFoundError();
@@ -30,7 +28,7 @@ async function validateProjectOrFail(
 
 const projectService = {
   createProject,
-  validateProjectOrFail,
+  getById,
 };
 
 export * from "./errors";
